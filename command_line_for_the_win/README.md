@@ -16,6 +16,8 @@ Contributing
 
 Contributions are welcome! Please follow the guidelines.
 
-License
+sequenceDiagram
 
-This project is licensed under the [License Name] - see the LICENSE.md file for details.
+Local Machine ->> SFTP: Fetches files from local using put
+SFTP-->>Remote: Transferred to Remote
+
