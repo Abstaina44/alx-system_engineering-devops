@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# print hours and minuites for 12 hours
+
+i=0
+while [ $i -le 12 ]
+do 
+    echo "Hour: $i"
+    j=1
+    while [ $j -lt 60 ]
+    do
+        echo $j;
+        (("j++"));
+    done
+    (("i++"));
+done
