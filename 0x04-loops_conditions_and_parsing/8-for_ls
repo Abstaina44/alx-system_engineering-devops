@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# list file names in current directory
+# without the task number and "-"
+
+for file in *; do echo "${file/*-/}"; done
