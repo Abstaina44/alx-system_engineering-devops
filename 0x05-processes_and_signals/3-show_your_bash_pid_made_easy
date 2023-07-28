@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# List all processes for bash and the process name, without using ps
+pgrep -l bash
