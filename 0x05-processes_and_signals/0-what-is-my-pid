@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# Get script PID
+echo $$
