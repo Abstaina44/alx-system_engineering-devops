@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# List all processes for all bash in a user-oriented-format without using pgrep
+# shellcheck disable=SC2009
+ps auxf | grep bash
