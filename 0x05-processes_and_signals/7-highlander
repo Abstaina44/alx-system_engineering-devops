@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Display text indefinately and sleep for 2 seconds inbetween
+# resist a terminate signal
+while true
+do
+    echo "To infinity and beyond"
+    trap "echo I am invincible!!!" SIGTERM
+    sleep 2
+done
