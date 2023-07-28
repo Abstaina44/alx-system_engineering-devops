@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# List all processes for all users in a user-oriented-format
+# shellcheck disable=SC2009
+ps auxf
