@@ -18,6 +18,6 @@ Contributions are welcome! Please follow the guidelines.
 
 sequenceDiagram
 
-Local Machine ->> SFTP: Fetches files from local using put
+Local Machine ->> SFTP: Fetches files from local using put......
 SFTP-->>Remote: Transferred to Remote
 
