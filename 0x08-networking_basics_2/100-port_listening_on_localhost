@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Opens a connection to start listening on port 98
+# for messages
+
+nc -lp 98
