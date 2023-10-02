@@ -1,84 +1,42 @@
 #!/usr/bin/env bash
-# duplicate web-01 to web-02
-# these scripts are an upgrade from the web-server scripts...
+# Configures the web server
+# Also adds a custom header
+sudo apt update -y
+sudo apt install nginx -y
+sudo service nginx start
+sudo chown -R "$USER":"$USER" /var/www/html
+echo "Hello World!" > /var/www/html/index.nginx-debian.html
+echo "Ceci n'est pas une page" > /var/www/html/404.html
 
-# uncomment to see the script run in action
-#set -x
+sudo chown -R "$USER":"$USER" /etc/nginx/sites-enabled
+sudo bash -c 'cat <<EOF> /etc/nginx/sites-enabled/default
+	server {
+	listen 80 default_server;
+	listen [::]:80 default_server;
+	root /var/www/html;
 
-echo -e "Updating and doing some minor checks...\n"
+	# Add index.php to the list if you are using PHP
+	index index.html index.htm index.nginx-debian.html;
 
-function install() {
-	command -v "$1" &> /dev/null
+	server_name _;
 
-	#shellcheck disable=SC2181
-	if [ $? -ne 0 ]; then
-		echo -e "	Installing: $1$\n"
-		sudo apt-get update -y -qq && \
-			sudo apt-get install -y "$1" -qq
-		echo -e "\n"
-	else
-		echo -e "	${1} is already installed.\n"
-	fi
-}
+	add_header X-Served-By \$hostname;
 
-install nginx #install nginx
+	location /redirect_me {
+		return 301 https://www.youtube.com/watch?v=QH2-TGUlwu4;
+	}
+	location / {
+		# First attempt to serve request as file, then
+		# as directory, then fall back to displaying a 404.
+		try_files \$uri \$uri/ =404;
+	}
 
-echo -e "\nSetting up some minor stuff.\n"
-
-# allowing nginx on firewall
-sudo ufw allow 'Nginx HTTP'
-
-# Give the user ownership to website files for easy editing
-if [ -d "/var/www" ]; then
-	sudo chown -R "$USER":"$USER" /var/www
-	sudo chmod -R 755 /var/www
-else
-	sudo mkdir -p /var/www
-	sudo chown -R "$USER":"$USER" /var/www
-	sudo chmod -R 755 /var/www
-fi
-
-# create directories if not present
-for dir in /var/www/{html,error}; do
-	if ! [ -d "$dir" ]; then
-		mkdir -p "$dir"
-	fi
-done
-
-# creating new index
-echo "Hello World!" > /var/www/html/index.html
-
-# create new error page
-echo "Ceci n'est pas une page" > /var/www/html/error_404.html
-
-# backup default server config file
-sudo cp /etc/nginx/sites-enabled/default nginx-sites-enabled_default.backup
-
-server_config=\
-"server {
-		listen 80 default_server;
-		listen [::]:80 default_server;
+	error_page 404 /404.html;
+	location = /404.html {
 		root /var/www/html;
-		index index.html index.htm index.nginx-debian.html
-		server_name_;
-		add_header X-Served-By \$hostname;
-		location / {
-			try_files \$uri \$uri/ =404;
-		}
-		if (\$request_filename ~ redirect_me){
-			rewrite ^ https://th3-gr00t.tk/ permanent;
-		}
-		error_page 404 /error_404.html;
-		location = /error_404.html {
-			internal;
-		}
-}"
+		internal;
+	}
 
-#shellcheck disable=SC2154
-echo "$server_config" | sudo dd status=none of=/etc/nginx/sites-enabled/default
-
-if [ "$(pgrep -c nginx)" -le 0 ]; then
-	sudo service nginx start
-else
-	sudo service nginx restart
-fi
+}
+EOF'
+sudo service nginx restart
