@@ -1,26 +1,22 @@
 #!/usr/bin/env bash
-# Configure your domain zone so that the subdomain www points to your
-# load-balancer IP (lb-01). Let’s also add other subdomains to make our 
-# life easier, and write a Bash script that will display information 
-# about subdomains.
+# After configuring domain zone, use this script to output where each subdomain points to
+runDig () {
+    subarg=$1
+    urlarg=$2
 
-# if [ -z "$1" ]; then
-#     exit
-# fi
-
-myArray=("www" "lb-01" "web-01" "web-02")
-
-
-get_and_print ()
-{
-    output=$(dig @8.8.8.8 "$2"."$1" | grep -A1 'ANSWER SECTION:' | tail -1)
-    echo "The subdomain $2 is a $(echo "$output" | awk '{print $4}') record and points to $(echo "$output" | awk '{print $5}')"
+    dig "$subarg.$urlarg" | grep -A1 'ANSWER SECTION:' | tail -1 | awk -v s="$subarg" 'BEGIN { FS = " " } ; { print "The subdomain " s " is a " $4 " record and points to " $5 }'
 }
 
-if [ -z "$2" ]; then
-    for str in "${myArray[@]}"; do
-        get_and_print "$1" "$str"
+allSubs=( "www" "lb-01" "web-01" "web-02" )
+
+if [ $# -eq 1 ]; then
+    url="$1"
+    for s in "${allSubs[@]}"
+    do
+	runDig "$s" "$url"
     done
-else
-    get_and_print "$1" "$2"
+elif [ $# -eq 2 ]; then
+    url="$1"
+    sub="$2"
+    runDig "$sub" "$url"
 fi
