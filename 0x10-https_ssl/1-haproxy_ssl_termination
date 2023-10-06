@@ -1,0 +1,30 @@
+global
+    log /dev/log    local0
+    log /dev/log    local1 notice
+    chroot /var/lib/haproxy
+    stats socket /run/haproxy/admin.sock mode 660 level admin
+    stats timeout 30s
+    user haproxy
+    group haproxy
+    daemon
+    ssl-dh-param-file /etc/haproxy/dhparams.pem
+
+defaults
+    log global
+    mode http
+    option httplog
+    option dontlognull
+    timeout connect 5000
+    timeout client 50000
+    timeout server 50000
+
+frontend http-in
+    bind *:80
+    bind *:443 ssl crt /etc/haproxy/certs/www.fuzzfoo.tech.pem
+    redirect scheme https if !{ ssl_fc }
+    default_backend servers
+
+backend servers
+    balance roundrobin
+    server server1 52.201.159.243:80 check
+    server server2 54.237.7.179:80 check
