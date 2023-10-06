@@ -50,5 +50,5 @@ frontend manage_http_entry
 
 backend my_web_servers
 	balance static-rr
-	server web-01 34.236.187.99:80 check
-	server web-02 3.235.225.96:80 check
+	server web-01 52.201.159.243:80 check
+	server web-02 54.237.7.179:80 check
