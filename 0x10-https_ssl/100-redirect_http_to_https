@@ -20,7 +20,7 @@ defaults
 
 frontend http-in
     bind *:80
-    bind *:443 ssl crt /etc/haproxy/certs/www.fuzzfoo.tech.pem
+    bind *:443 ssl crt /etc/haproxy/certs/www.ephraim44.tech.pem
     redirect scheme https if !{ ssl_fc }
     default_backend servers
 
