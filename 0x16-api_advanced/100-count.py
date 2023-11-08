@@ -1,38 +1,41 @@
 #!/usr/bin/python3
-""" Queries top 10 posts in a subreddit """
-from requests import get, exceptions
+"""Write a recursive function that queries the Reddit API,
+parses the title of all hot articles, and prints a sorted
+count of given keywords (case-insensitive, delimited by spaces.
+Javascript should count as javascript, but java should not).
+"""
+
+import requests
 
 
-def count_words(subreddit, word_list, nxt=None, hash_count=None):
-    """ Queries top 10 posts in a subreddit recursively"""
-    words = [word.lower() for word in word_list]
-    if hash_count is None:
-        hash_count = {}
-    url = "https://www.reddit.com/r/{}/hot.json?limit=100".format(subreddit)
-    if nxt:
-        url += "&after={}".format(nxt)
-    try:
-        res = get(url, headers={'User-Agent': 'Safari 20'},
-                  allow_redirects=False)
-        res.raise_for_status()
-        if res.status_code == 200:
-            data = res.json()
-            if data.get('data').get('children'):
-                posts = data.get('data').get('children')
-                if len(posts) == 0:
-                    print(hash_count)
+def count_words(subreddit, word_list, found_list=[], after=None):
+    '''return count of keywords in hot posts titles'''
+    user_agent = {'User-agent': 'test45'}
+    posts = requests.get('http://www.reddit.com/r/{}/hot.json?after={}'
+                         .format(subreddit, after), headers=user_agent)
+    if after is None:
+        word_list = [word.lower() for word in word_list]
 
-                for key in words:
-                    for x in [post['data']['title'] for post in posts]:
-                        if key in x:
-                            if hash_count.get(key):
-                                hash_count[key] += 1
-                            else:
-                                hash_count[key] = 1
-                if data.get('data').get('after'):
-                    nxt = data['data']['after']
-                    return count_words(subreddit, word_list, nxt, hash_count)
+    if posts.status_code == 200:
+        posts = posts.json()['data']
+        aft = posts['after']
+        posts = posts['children']
+        for post in posts:
+            title = post['data']['title'].lower()
+            for word in title.split(' '):
+                if word in word_list:
+                    found_list.append(word)
+        if aft is not None:
+            count_words(subreddit, word_list, found_list, aft)
+        else:
+            result = {}
+            for word in found_list:
+                if word.lower() in result.keys():
+                    result[word.lower()] += 1
                 else:
-                    print(hash_count)
-    except exceptions.HTTPError:
-        return None
+                    result[word.lower()] = 1
+            for key, value in sorted(result.items(), key=lambda item: item[1],
+                                     reverse=True):
+                print('{}: {}'.format(key, value))
+    else:
+        return
