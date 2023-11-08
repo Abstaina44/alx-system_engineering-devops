@@ -1,39 +1,38 @@
 #!/usr/bin/python3
-""" recursive function that queries the Reddit API """
-import requests
+""" Queries top 10 posts in a subreddit """
+from requests import get, exceptions
 
 
-def count_words(subreddit, word_list, passed_after="", word_dict={}):
-    """ returns title of 10 hot posts """
-    url = 'https://www.reddit.com/r/' + subreddit + '/hot.json'
-    headers = {"user-agent": 'me'}
-    after = passed_after
-    params = {"after": after}
-    data = requests.get(url, headers=headers, params=params,
-                        allow_redirects=False)
-    if data.status_code != 200:
-        return
-    data = data.json()
+def count_words(subreddit, word_list, nxt=None, hash_count=None):
+    """ Queries top 10 posts in a subreddit recursively"""
+    words = [word.lower() for word in word_list]
+    if hash_count is None:
+        hash_count = {}
+    url = "https://www.reddit.com/r/{}/hot.json?limit=100".format(subreddit)
+    if nxt:
+        url += "&after={}".format(nxt)
     try:
-        for item in data['data']['children']:
-            full_title = item['data']['title']
-            title_list = full_title.split()
-            for title in title_list:
-                for word in word_list:
-                    if title.lower() == word.lower():
-                        if word.lower() in word_dict:
-                            word = word.lower()
-                            word_dict[word] = word_dict[word] + 1
-                        else:
-                            word_dict[word.lower()] = 1
-        passed_after = data['data']['after']
-        if passed_after is None:
-            sorted_list = sorted(word_dict.items(), key=lambda a: a[1],
-                                 reverse=True)
-            for item in sorted_list:
-                print("{}: {}".format(item[0], item[1]))
-            return
-        else:
-            count_words(subreddit, word_list, passed_after, word_dict)
-    except Exception:
+        res = get(url, headers={'User-Agent': 'Safari 20'},
+                  allow_redirects=False)
+        res.raise_for_status()
+        if res.status_code == 200:
+            data = res.json()
+            if data.get('data').get('children'):
+                posts = data.get('data').get('children')
+                if len(posts) == 0:
+                    print(hash_count)
+
+                for key in words:
+                    for x in [post['data']['title'] for post in posts]:
+                        if key in x:
+                            if hash_count.get(key):
+                                hash_count[key] += 1
+                            else:
+                                hash_count[key] = 1
+                if data.get('data').get('after'):
+                    nxt = data['data']['after']
+                    return count_words(subreddit, word_list, nxt, hash_count)
+                else:
+                    print(hash_count)
+    except exceptions.HTTPError:
         return None
